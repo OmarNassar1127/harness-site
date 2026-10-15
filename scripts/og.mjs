@@ -1,60 +1,64 @@
-// Renders the Open Graph images (one per language) and the favicon set with headless Chrome.
-// Usage: node scripts/og.mjs   (writes into public/)
+// Renders the Open Graph images (one per language) from the hero render of the 3D stage, and the favicon set.
+// Usage: node scripts/og.mjs   (writes into public/, needs Google Chrome)
+process.env.NODE_ENV = "development";
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createServer } from "vite";
 import { chromium } from "playwright";
 import en from "../content/en.mjs";
 import nl from "../content/nl.mjs";
-import * as k from "../vendor/anatomy/iso-kit.mjs";
-import * as G from "../figures/gate-model.mjs";
-import { HELD_POSE } from "../src/live/gate.js";
+import { STILLS } from "../src/stage/timeline.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const PUB = join(ROOT, "public");
 const font = (file) => `data:font/woff2;base64,${readFileSync(join(PUB, "fonts", file)).toString("base64")}`;
-const figureCss = readFileSync(join(ROOT, "src/figures.css"), "utf8");
 
+// The mark: the gate from the page, as a flat icon.
 const ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
 <rect width="64" height="64" rx="14" fill="#0f0f0e"/>
-<rect x="10" y="12" width="44" height="8" rx="2" fill="#fbfbfa"/>
-<rect x="14" y="20" width="8" height="32" rx="1.5" fill="#fbfbfa"/>
-<rect x="42" y="20" width="8" height="32" rx="1.5" fill="#fbfbfa"/>
-<rect x="22" y="36" width="20" height="7" rx="1.5" fill="#f2541a"/>
+<rect x="13" y="16" width="38" height="38" rx="11" fill="#f3f2ee"/>
+<rect x="22" y="25" width="20" height="20" rx="5" fill="#f2541a"/>
+<rect x="25" y="28" width="14" height="14" rx="3.5" fill="#0f0f0e"/>
+<circle cx="32" cy="10.5" r="3.6" fill="#f2541a"/>
 </svg>
 `;
 
-function ogHtml(t) {
+function ogHtml(t, render) {
   const [line1, lead, em] = t.hero.title;
-  const svg = G.figure(HELD_POSE);
   return `<!doctype html><html><head><meta charset="utf-8"><style>
 @font-face{font-family:Newsreader;src:url(${font("newsreader-500.woff2")});font-weight:500}
 @font-face{font-family:Newsreader;src:url(${font("newsreader-500-italic.woff2")});font-weight:500;font-style:italic}
 @font-face{font-family:"Mona Sans";src:url(${font("mona-sans.woff2")});font-weight:200 900}
-${k.ISO_CSS}${figureCss}
 *{box-sizing:border-box;margin:0}
 html,body{width:1200px;height:630px;background:#f4f4f2;overflow:hidden}
 body{font-family:"Mona Sans",sans-serif;color:#4a4a47;position:relative}
-.copy{position:absolute;left:72px;top:64px;width:600px}
-.eyebrow{font:500 22px ui-monospace,Menlo,monospace;color:#c2410c;letter-spacing:.01em}
-h1{font-family:Newsreader,serif;font-weight:500;color:#0f0f0e;font-size:74px;line-height:1.02;letter-spacing:-.02em;margin-top:26px}
+.copy{position:absolute;left:72px;top:74px;width:610px}
+h1{font-family:Newsreader,serif;font-weight:500;color:#0f0f0e;font-size:68px;line-height:1.02;letter-spacing:-.028em;text-wrap:balance}
 h1 em{font-style:italic;color:#f2541a}
-.foot{position:absolute;left:72px;bottom:58px;display:flex;align-items:center;gap:18px;font-size:25px;color:#0f0f0e;font-weight:600}
+h1 .l{display:block;text-wrap:balance}
+.foot{position:absolute;left:72px;bottom:62px;display:flex;align-items:center;gap:18px;font-size:25px;color:#0f0f0e;font-weight:600}
 .pill{background:#f2541a;color:#0f0f0e;border-radius:999px;padding:12px 24px;font-size:24px}
 .url{font:500 20px ui-monospace,Menlo,monospace;color:#6f6f6a}
-.fig{position:absolute;right:-70px;top:40px;width:640px}
-.fig .iso-svg{width:640px}
-</style></head><body class="iso" data-theme="light">
-<div class="copy"><p class="eyebrow">${t.hero.eyebrow}</p><h1>${line1}<br>${lead} <em>${em}</em></h1></div>
+.fig{position:absolute;right:-30px;top:-10px;width:650px;height:650px;-webkit-mask-image:linear-gradient(to right,transparent 2%,#000 16%);mask-image:linear-gradient(to right,transparent 2%,#000 16%)}
+</style></head><body>
+<div class="copy"><h1><span class="l">${line1}</span><span class="l">${lead} <em>${em}</em></span></h1></div>
 <div class="foot"><span class="pill">${t.price.from} ${t.price.amount}</span><span>Omar Nassar</span><span class="url">harness.omardev.xyz${t.path === "/" ? "" : "/nl"}</span></div>
-<div class="fig">${svg}</div>
+<img class="fig" src="${render}">
 </body></html>`;
 }
 
+const server = await createServer({ root: ROOT, configFile: join(ROOT, "vite.config.ts"), server: { port: 5198, strictPort: true }, logLevel: "error" });
+await server.listen();
 const browser = await chromium.launch({ channel: "chrome" });
+const still = await browser.newPage({ viewport: { width: 1300, height: 1300 } });
+await still.goto(`http://localhost:5198/tools/still.html?t=${STILLS.hero}&w=1300&h=1300&type=image/png`, { waitUntil: "networkidle" });
+const render = (await still.evaluate(() => window.__still)).url;
+await still.close();
+await server.close();
 for (const t of [en, nl]) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
-  await page.setContent(ogHtml(t), { waitUntil: "load" });
+  await page.setContent(ogHtml(t, render), { waitUntil: "load" });
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(150);
   await page.screenshot({ path: join(PUB, `og-${t.lang}.png`) });

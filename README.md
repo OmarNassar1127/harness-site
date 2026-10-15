@@ -6,15 +6,22 @@ Sales page for a fixed-price Claude Code harness setup. Live at https://harness.
 
 ```sh
 npm ci
-npm run dev      # writes the pages, starts Vite
-npm run build    # writes the pages, builds dist/
-npm run og       # renders public/og-*.png and the favicon set (needs Google Chrome)
+npm run dev                         # writes the pages, starts Vite
+npm run build                       # writes the pages, builds dist/
+node scripts/keyframes.mjs          # renders public/keyframes/ (stills of each 3D moment). Needs Google Chrome.
+npm run og                          # renders public/og-*.png and the favicon set. Needs Google Chrome.
+npm run check -- <url>              # checks horizontal scroll, tap targets, console errors and a drawn canvas at 5 widths
+node scripts/shots.mjs <url> <dir>  # screenshots of each scene at 390x844 and 1440x900
 ```
 
-- `content/en.mjs`, `content/nl.mjs`: all copy. `content/readouts.mjs`: live figure readouts.
-- `figures/*-model.mjs`: geometry and motion of each isometric figure, built with the vendored anatomy kit in `vendor/anatomy/` (MIT).
+- `content/en.mjs`, `content/nl.mjs`: all copy.
 - `scripts/pages.mjs`: writes `index.html`, `nl/index.html`, `public/sitemap.xml`, `public/robots.txt` and `public/CNAME`.
-- `src/live/*.js`: the live behaviour of the figures in the browser.
-- `DESIGN.md`: the section list, what each section must make the visitor believe, and the exemplar it stands beside.
+- `src/stage/timeline.js`: the scenes, their scroll lengths, the terminal replay and the pose of every 3D moment at each scroll position.
+- `src/stage/objects.js`: the 3D objects. `src/stage/world.js`: the five moments and their motion. `src/stage/stage.js`: renderer, light and framing.
+- `src/main.ts`: the scroll timeline for the copy, and the WebGL boot on first input.
+- `tools/still.html`: renders one still of the 3D at a story time, for the keyframe and Open Graph scripts.
+- `DESIGN.md`: the scene list, what each scene must make the visitor believe, and the exemplar it stands beside.
+
+Run `node scripts/keyframes.mjs` again after a change to `src/stage/`. The stills are the hero poster and the reduced-motion version of each scene.
 
 GitHub Actions deploys to GitHub Pages on every push to `main`.

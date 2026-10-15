@@ -3,7 +3,7 @@
 //   - no horizontal scroll (document.scrollingElement.scrollWidth <= innerWidth),
 //   - every visible tap target (links, buttons, focusable figures) is at least 44 x 44 px,
 //   - no console errors or failed requests,
-//   - each figure's drawing renders at a legible scale (px on screen per world unit of the model).
+//   - the WebGL stage goes live (motion mode) and the canvas is not blank.
 // Usage: node scripts/check.mjs [baseUrl] [--shots dir]
 import { mkdirSync } from "node:fs";
 import { chromium } from "playwright";
@@ -16,8 +16,6 @@ const inject = args.includes("--inject") ? args[args.indexOf("--inject") + 1] : 
 if (shotDir) mkdirSync(shotDir, { recursive: true });
 const WIDTHS = [360, 390, 768, 1024, 1440];
 const PAGES = [["en", "/"], ["nl", "/nl/"]];
-// World-unit scale of each figure's projection, so the check can turn rendered size into px per unit.
-const UNITS = { gate: 600, canary: 600 };
 
 const browser = await chromium.launch({ channel: "chrome" });
 let failures = 0;
@@ -37,12 +35,14 @@ for (const [lang, path] of PAGES) {
     page.on("response", (r) => r.status() >= 400 && errors.push(`${r.status()} ${r.url()}`));
     await page.goto(base + path, { waitUntil: "networkidle" });
     if (inject) await page.addStyleTag({ content: inject });
+    await page.mouse.wheel(0, 1);
+    const live = await page.waitForFunction(() => document.querySelector(".object")?.classList.contains("is-live"), null, { timeout: 15000 }).then(() => true, () => false);
     await page.waitForTimeout(400);
-    const result = await page.evaluate((units) => {
+    const result = await page.evaluate(() => {
       const se = document.scrollingElement;
       const overflow = { scrollWidth: se.scrollWidth, innerWidth: window.innerWidth };
       const wide = [...document.querySelectorAll("body *")]
-        .filter((el) => !el.closest("svg") && !el.closest(".iso-stage"))
+        .filter((el) => !el.closest(".object"))
         .map((el) => ({ el, r: el.getBoundingClientRect() }))
         .filter(({ r }) => r.width > 0 && r.right > window.innerWidth + 0.5)
         .slice(0, 5)
@@ -60,35 +60,35 @@ for (const [lang, path] of PAGES) {
           return { label: (el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 40), w: Math.round(r.width * 10) / 10, h: Math.round(r.height * 10) / 10 };
         });
       const small = targets.filter((t) => t.w < 44 || t.h < 44);
-      const figures = [...document.querySelectorAll("[data-figure]")].map((fig) => {
-        const svg = fig.querySelector(".iso-svg");
-        const stage = fig.querySelector(".iso-stage");
-        const r = svg.getBoundingClientRect();
-        const vb = svg.viewBox.baseVal;
-        return { id: fig.dataset.figure, svgWidth: Math.round(r.width), stageWidth: Math.round(stage.getBoundingClientRect().width), pxPerViewBox: r.width / vb.width, units: units[fig.dataset.figure] };
-      });
-      return { overflow, wide, targets: targets.length, small, figures };
-    }, UNITS);
+      return { overflow, wide, targets: targets.length, small };
+    });
+    // Blank-canvas check: hide the copy and the poster, screenshot, count pixels that differ from the page colour.
+    const hide = await page.addStyleTag({ content: ".scene, .nav-wrap, .poster { visibility: hidden !important; }" });
+    const shot = await page.screenshot({ type: "png" });
+    await hide.evaluate((el) => el.remove());
+    result.inked = await page.evaluate(async (src) => {
+      const img = new Image();
+      img.src = src;
+      await img.decode();
+      const c = document.createElement("canvas");
+      c.width = c.height = 64;
+      const g = c.getContext("2d");
+      g.drawImage(img, 0, 0, 64, 64);
+      const d = g.getImageData(0, 0, 64, 64).data;
+      let n = 0;
+      for (let i = 0; i < d.length; i += 4) if (Math.abs(d[i] - 244) + Math.abs(d[i + 1] - 244) + Math.abs(d[i + 2] - 242) > 30) n++;
+      return n;
+    }, "data:image/png;base64," + shot.toString("base64"));
 
     console.log(`${lang} ${width}px: scrollWidth ${result.overflow.scrollWidth} / innerWidth ${result.overflow.innerWidth}, ${result.targets} tap targets`);
     // On a phone, overflowing content widens the layout viewport itself, so innerWidth must also equal the device width.
     if (result.overflow.innerWidth !== width) fail(`layout viewport is ${result.overflow.innerWidth}px on a ${width}px screen (content wider than the screen)`);
     if (result.overflow.scrollWidth > result.overflow.innerWidth) fail(`horizontal scroll at ${width}px (${result.overflow.scrollWidth} > ${result.overflow.innerWidth}) ${result.wide.join("; ")}`);
     for (const t of result.small) fail(`tap target ${t.w}x${t.h} "${t.label}"`);
-    for (const f of result.figures) {
-      console.log(`  figure ${f.id}: svg ${f.svgWidth}px in a ${f.stageWidth}px stage, ${f.pxPerViewBox.toFixed(2)} px per viewBox unit`);
-      if (f.pxPerViewBox < 0.68) fail(`figure ${f.id} renders at ${f.pxPerViewBox.toFixed(2)} px per viewBox unit (< 0.68)`);
-    }
+    if (!live) fail("the WebGL stage never went live");
+    else if (result.inked < 20) fail(`the canvas looks blank (${result.inked} of 4096 sampled pixels drawn)`);
     for (const e of errors) fail(`console/network: ${e}`);
-    if (shotDir) {
-      await page.screenshot({ path: `${shotDir}/${lang}-${width}.png` });
-      for (const f of result.figures) {
-        const el = await page.$(`[data-figure="${f.id}"]`);
-        await el.scrollIntoViewIfNeeded();
-        await page.waitForTimeout(250);
-        await el.screenshot({ path: `${shotDir}/${lang}-${width}-${f.id}.png` });
-      }
-    }
+    if (shotDir) await page.screenshot({ path: `${shotDir}/${lang}-${width}.png` });
     await page.close();
   }
 }

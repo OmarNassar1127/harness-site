@@ -34,6 +34,7 @@ jobs:
           test -f dist/robots.txt
           test -f dist/og-en.png
           test -f dist/og-nl.png
+          test -f dist/keyframes/hero-1200.webp
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:

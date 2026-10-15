@@ -1,13 +1,11 @@
-// Writes index.html (EN) and nl/index.html (NL) from content/*.mjs, plus the kit CSS.
+// Writes index.html (EN) and nl/index.html (NL) from content/*.mjs, plus sitemap, robots and CNAME.
 // Vite then bundles them. Run before `vite` and `vite build`.
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import en from "../content/en.mjs";
 import nl from "../content/nl.mjs";
-import * as k from "../vendor/anatomy/iso-kit.mjs";
-import * as G from "../figures/gate-model.mjs";
-import { HELD_POSE } from "../src/live/gate.js";
+import { TOTAL, TERM, STILLS } from "../src/stage/timeline.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SITE = "https://harness.omardev.xyz";
@@ -16,34 +14,15 @@ const X_HANDLE = "GodelTrabuco69";
 const X_URL = `https://x.com/${X_HANDLE}`;
 const PRICE = 1500;
 
-const C = await import("../figures/canary-model.mjs").catch(() => null);
-
-mkdirSync(join(ROOT, "src/generated"), { recursive: true });
-writeFileSync(join(ROOT, "src/generated/iso.css"), k.ISO_CSS);
+// Label positions on the exploded still (fractions of the image), written by scripts/keyframes.mjs.
+const metaFile = join(ROOT, "public/keyframes/meta.json");
+const META = existsSync(metaFile) ? JSON.parse(readFileSync(metaFile, "utf8")) : { parts: [] };
 
 const esc = (text) => String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-// Copy may mark commands with backticks; they render as <code>.
-const rich = (text) => esc(text).replace(/`([^`]+)`/g, '<code translate="no">$1</code>');
+// Kinetic type: wrap each word (or each character) in a mask, so GSAP can lift them in one by one.
+const words = (text) => esc(text).split(" ").map((w) => `<span class="w"><span class="wi">${w}</span></span>`).join(" ");
+const chars = (text) => [...text].map((c) => (c === "\u00a0" ? " " : `<span class="w"><span class="wi">${esc(c)}</span></span>`)).join("");
 const mailto = (t) => `mailto:${EMAIL}?subject=${encodeURIComponent(t.mail.subject)}&body=${encodeURIComponent(t.mail.body)}`;
-
-function plate({ id, t, svg, readout, pause, play }) {
-  const corner = (name, text, extra = "") => `<span class="iso-plate-corner" data-corner="${name}"${extra}>${esc(text)}</span>`;
-  const keys = t.keys
-    .map((key) => {
-      const body = key.mark === "lit" ? "M2 4.5 8 1.5 14 4.5 14 6 8 9 2 6Z" : "M2 4.5 8 1.5 14 4.5 14 6 8 9 2 6Z";
-      return `<span class="iso-key"><svg class="iso-swatch" data-mark="${key.mark}" viewBox="0 0 16 10" aria-hidden="true"><path d="${body}"/><path class="iso-swatch-crease" d="M2 4.5 8 7.5 14 4.5"/></svg>${esc(key.label)}</span>`;
-    })
-    .join("");
-  return `<figure class="iso iso-figure" data-theme="light" data-figure="${id}">
-<div class="iso-plate">
-<div class="iso-plate-corners" aria-hidden="true">${corner("fig", t.fig)}${corner("title", t.title)}${corner("hint", t.hint)}${corner("readout", readout, " data-readout")}</div>
-<button type="button" class="iso-pause" data-pause data-label-pause="${esc(pause)}" data-label-play="${esc(play)}" aria-pressed="false">${esc(pause)}</button>
-<button type="button" class="iso-stage" aria-label="${esc(t.aria)}">${svg}</button>
-<div class="sr-only" aria-live="polite" data-announce></div>
-</div>
-<figcaption class="iso-legend"><span class="iso-keys">${keys}</span><span class="iso-caption">${esc(t.caption)}</span></figcaption>
-</figure>`;
-}
 
 function jsonLd(t, url) {
   const person = {
@@ -125,6 +104,8 @@ function head(t, other) {
 <link rel="manifest" href="/site.webmanifest">
 <link rel="preload" href="/fonts/newsreader-500.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/mona-sans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" as="image" href="/keyframes/hero-1200.webp" imagesrcset="/keyframes/hero-640.webp 640w, /keyframes/hero-1200.webp 1200w" imagesizes="(max-aspect-ratio: 9/10) 120vw, 90vh" media="(prefers-reduced-motion: no-preference)" fetchpriority="high">
+<script>if(matchMedia("(prefers-reduced-motion: no-preference)").matches&&"WebGLRenderingContext"in window)document.documentElement.classList.add("motion")</script>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Omar Nassar">
 <meta property="og:url" content="${url}">
@@ -146,132 +127,123 @@ function head(t, other) {
 <script type="application/ld+json">${JSON.stringify(jsonLd(t, url)).replace(/</g, "\\u003c")}</script>`;
 }
 
-const ctaButton = (t, extra = "") => `<a class="btn btn-primary${extra}" href="${esc(mailto(t))}">${esc(t.cta)}</a>`;
+const cta = (t, extra = "") => `<a class="btn btn-primary${extra}" href="${esc(mailto(t))}">${esc(t.cta)}</a>`;
+
+/** A keyframe still of the object, shown when the page runs without motion. */
+function still(name, alt) {
+  return `<img class="still" src="/keyframes/${name}-1200.webp" srcset="/keyframes/${name}-640.webp 640w, /keyframes/${name}-1200.webp 1200w" sizes="(min-width: 768px) 560px, 92vw" width="1200" height="1200" alt="${esc(alt)}" loading="lazy" decoding="async">`;
+}
 
 function body(t, other) {
   const [line1, lead, em] = t.hero.title;
-  const gateSvg = G.figure(HELD_POSE);
-  const gate = plate({ id: "gate", t: t.gate, svg: gateSvg, readout: t.gate.readout.held(3), pause: t.close.pause, play: t.close.play });
-  const canary = C ? plate({ id: "canary", t: t.canary, svg: C.figure(C.REST_POSE), readout: t.canary.readout.fail(3), pause: t.close.pause, play: t.close.play }) : "";
-  const install = t.install.items
-    .map((item) => `<li class="part"><h3 class="part-name">${esc(item.name)}</h3><p>${rich(item.body)}</p></li>`)
+  const term = TERM.map(
+    (line, i) => `<span class="term-line" data-line="${i}">${line.seg.map(([text, cls]) => `<span${cls ? ` class="t-${cls}"` : ""}>${esc(text)}</span>`).join("")}</span>`,
+  ).join("");
+  const labels = t.parts.labels
+    .map((label, i) => {
+      const a = META.parts[i];
+      const style = a ? ` style="--sx:${(a.x * 100).toFixed(1)}%;--sy:${(a.y * 100).toFixed(1)}%;--ty:${a.below ? "0%" : "-100%"}"` : "";
+      return `<li class="label" data-label="${i}"${style}><span>${esc(label)}</span></li>`;
+    })
     .join("");
-  const incidents = t.incidents.items
+  const cards = t.incidents.items
     .map(
-      (item) => `<article class="incident">
-<p class="incident-meta"><time datetime="${item.date}">${item.date}</time><span>${esc(item.area)}</span></p>
-<div class="incident-body">
-<h3 class="incident-title">${esc(item.title)}</h3>
-<dl class="incident-fields">
-<div><dt>${esc(t.incidents.labels.broke)}</dt><dd>${rich(item.broke)}</dd></div>
-<div><dt>${esc(t.incidents.labels.found)}</dt><dd>${rich(item.found)}</dd></div>
-<div class="is-now"><dt>${esc(t.incidents.labels.now)}</dt><dd>${rich(item.now)}</dd></div>
-</dl>
-</div>
-</article>`,
+      (item, i) => `<li class="card" data-card="${i}"><p class="card-meta"><time datetime="${item.date}">${item.date}</time><span>${esc(item.area)}</span></p><p class="card-line">${esc(item.line)}</p></li>`,
     )
     .join("");
-  const included = t.price.included.map((line) => `<li>${esc(line)}</li>`).join("");
-  const steps = t.process.steps.map((step) => `<li class="step"><h3 class="step-name">${esc(step.name)}</h3><p>${esc(step.body)}</p></li>`).join("");
-  const copyButton = `<button type="button" class="btn btn-quiet" data-copy="${EMAIL}" data-copied="${esc(t.copied)}"><span>${esc(t.copy)}</span></button>`;
+  const scope = t.price.scope.map((word) => `<li>${esc(word)}</li>`).join("");
+  const copyButton = `<button type="button" class="btn btn-quiet" data-copy="${EMAIL}" data-copied="${esc(t.book.copied)}"><span>${esc(t.book.copy)}</span></button>`;
 
   return `<a class="skip" href="#main">${esc(t.skip)}</a>
 <header class="nav-wrap">
-<nav class="nav" aria-label="${t.lang === "nl" ? "Hoofdmenu" : "Main"}">
+<nav class="nav" aria-label="${esc(t.nav.main)}">
 <a class="wordmark" translate="no" href="${t.path}" aria-label="${esc(t.nav.home)}">Omar Nassar</a>
-<ul class="nav-links">
-<li><a href="#install">${esc(t.nav.install)}</a></li>
-<li><a href="#incidents">${esc(t.nav.incidents)}</a></li>
-<li><a href="#price">${esc(t.nav.price)}</a></li>
-</ul>
 <div class="nav-end">
 <a class="lang" href="${other.path}" hreflang="${other.lang}" lang="${other.lang}" aria-label="${esc(t.nav.switchLabel)}">${esc(t.nav.switchShort)}</a>
-${ctaButton(t, " btn-small")}
+${cta(t, " btn-small")}
 </div>
 </nav>
 </header>
 <main id="main">
-<section class="hero" aria-labelledby="hero-title">
-<div class="wrap">
-<p class="eyebrow">${esc(t.hero.eyebrow)}</p>
-<h1 id="hero-title" class="display-1"><span class="block">${esc(line1)}</span> <span class="block">${esc(lead)} <em>${esc(em)}</em></span></h1>
-<div class="hero-grid">
-<div class="hero-copy">
-<p class="lede">${esc(t.hero.sub)}</p>
-<div class="actions">${ctaButton(t)}<a class="btn btn-ghost" href="#incidents">${esc(t.hero.secondary)}</a></div>
+<div class="story" style="--total:${TOTAL}">
+<div class="stage">
+<div class="object" aria-hidden="true">
+<img class="poster" src="/keyframes/hero-1200.webp" srcset="/keyframes/hero-640.webp 640w, /keyframes/hero-1200.webp 1200w" sizes="(max-aspect-ratio: 9/10) 120vw, 90vh" width="1200" height="1200" alt="" fetchpriority="high" decoding="async">
+<canvas class="gl" width="1" height="1"></canvas>
 </div>
-<div class="hero-figure">${gate}</div>
+
+<section class="scene" id="hero" data-scene="hero" aria-labelledby="hero-title">
+<div class="copy copy-top">
+<h1 id="hero-title" class="display-1" data-a="title"><span class="line">${words(line1)}</span> <span class="line">${words(lead)} <em>${words(em)}</em></span></h1>
 </div>
+${still("hero", t.stillAlt)}
+<div class="copy copy-bottom" data-a="sub">
+<p class="sub">${esc(t.hero.sub)}</p>
+<div class="actions">${cta(t)}</div>
 </div>
 </section>
 
-<section id="install" class="section" aria-labelledby="install-title">
-<div class="wrap">
-<h2 id="install-title" class="display-2">${esc(t.install.title)}</h2>
-<p class="intro">${esc(t.install.intro)}</p>
-<div class="install-grid">
-<ul class="parts">${install}</ul>
-${canary ? `<div class="install-figure">${canary}</div>` : ""}
+<section class="scene" id="catch" data-scene="catch" aria-labelledby="catch-title">
+<div class="copy copy-top">
+<h2 id="catch-title" class="display-2" data-a="title">${words(t.catch.title)}</h2>
+<p class="sub" data-a="sub">${esc(t.catch.sub)}</p>
 </div>
-</div>
+${still("catch", t.catch.alt)}
 </section>
 
-<section id="incidents" class="section" aria-labelledby="incidents-title">
-<div class="wrap">
-<h2 id="incidents-title" class="display-2">${esc(t.incidents.title)}</h2>
-<p class="intro">${esc(t.incidents.intro)}</p>
-<div class="incidents">${incidents}</div>
+<section class="scene" id="parts" data-scene="parts" aria-labelledby="parts-title">
+<div class="copy copy-top">
+<h2 id="parts-title" class="display-2" data-a="title">${words(t.parts.title)}</h2>
 </div>
+<div class="still-wrap">${still("parts", t.parts.alt)}<ol class="labels">${labels}</ol></div>
+<div class="copy copy-bottom" data-a="sub"><p class="sub">${esc(t.parts.sub)}</p></div>
 </section>
 
-<section id="price" class="section" aria-labelledby="price-title">
-<div class="wrap">
-<h2 id="price-title" class="display-2">${esc(t.price.title)}</h2>
-<div class="offer">
-<div class="offer-price">
-<p class="price"><span class="price-from">${esc(t.price.from)}</span> <span class="price-amount">${esc(t.price.amount)}</span></p>
-<p class="price-note">${esc(t.price.note)}</p>
-<div class="actions">${ctaButton(t)}</div>
+<section class="scene" id="replay" data-scene="replay" aria-labelledby="replay-title">
+<div class="replay-grid">
+<div class="copy">
+<h2 id="replay-title" class="display-2" data-a="title">${words(t.replay.title)}</h2>
+<p class="sub" data-a="sub">${esc(t.replay.sub)}</p>
 </div>
-<div class="offer-list">
-<h3 class="offer-heading">${esc(t.price.includedTitle)}</h3>
-<ul class="checks">${included}</ul>
+<figure class="term" data-a="term" aria-label="${esc(t.replay.aria)}">
+<p class="term-bar"><span>2026-09-03</span><span>replay</span></p>
+<pre class="term-body" translate="no">${term}</pre>
+</figure>
 </div>
-<div class="offer-more">
-<h3 class="offer-heading">${esc(t.price.moreTitle)}</h3>
-<p>${esc(t.price.more)}</p>
-</div>
-</div>
-</div>
+${still("replay", t.replay.alt)}
 </section>
 
-<section class="section" aria-labelledby="process-title">
-<div class="wrap">
-<h2 id="process-title" class="display-2">${esc(t.process.title)}</h2>
-<ol class="steps">${steps}</ol>
+<section class="scene" id="incidents" data-scene="incidents" aria-labelledby="incidents-title">
+<div class="copy copy-top">
+<h2 id="incidents-title" class="display-2" data-a="title">${words(t.incidents.title)}</h2>
 </div>
+<ol class="cards">${cards}</ol>
 </section>
 
-<section class="section close" aria-labelledby="close-title">
-<div class="wrap close-grid">
-<div class="close-copy">
-<h2 id="close-title" class="display-1 close-title">${esc(t.close.title)}</h2>
-<p class="lede">${esc(t.close.body)}</p>
-<div class="actions">${ctaButton(t)}${copyButton}</div>
-<p class="contact-line"><a class="mail" href="${esc(mailto(t))}">${EMAIL}</a><a class="xlink" href="${X_URL}" rel="me noopener">${esc(t.close.x)}: @${X_HANDLE}</a></p>
+<section class="scene" id="price" data-scene="price" aria-labelledby="price-title">
+<div class="copy price-copy">
+<h2 id="price-title" class="price" data-a="price"><span class="price-from">${words(t.price.from)}</span> <span class="price-amount">${chars(t.price.amount)}</span></h2>
+<ul class="scope" data-a="scope" aria-label="${esc(t.price.note)}">${scope}</ul>
 </div>
-<div class="mail-card">
-<p class="mail-card-label">${esc(t.close.preview)}</p>
-<dl class="mail-head"><div><dt>${esc(t.close.to)}</dt><dd>${EMAIL}</dd></div><div><dt>${esc(t.close.subject)}</dt><dd>${esc(t.mail.subject)}</dd></div></dl>
-<div class="mail-body">${t.mail.body.trim().split("\n").map((line) => `<p>${esc(line)}<span class="mail-blank" aria-hidden="true"></span></p>`).join("")}</div>
-</div>
-</div>
+${still("price", t.price.alt)}
 </section>
+
+<section class="scene" id="book" data-scene="book" aria-labelledby="book-title">
+<div class="copy copy-top">
+<h2 id="book-title" class="display-2" data-a="title">${words(t.book.title)}</h2>
+<p class="sub">${esc(t.book.sub)}</p>
+<div class="actions">${cta(t)}${copyButton}</div>
+<p class="xline"><a href="${X_URL}" rel="me noopener">${esc(t.book.x)}: @${X_HANDLE}</a></p>
+</div>
+${still("book", t.book.alt)}
+</section>
+</div>
+</div>
 </main>
 <footer class="footer">
-<div class="wrap footer-row">
+<div class="footer-row">
 <p>${esc(t.footer.line)}</p>
-<p class="footer-links"><a href="mailto:${EMAIL}">${EMAIL}</a><a href="${X_URL}" rel="me noopener">X</a><a href="${other.path}" hreflang="${other.lang}" lang="${other.lang}">${esc(t.nav.switchLabel)}</a></p>
+<p class="footer-links"><a href="${esc(mailto(t))}">${EMAIL}</a><a href="${X_URL}" rel="me noopener">X</a><a href="${other.path}" hreflang="${other.lang}" lang="${other.lang}">${esc(t.nav.switchLabel)}</a></p>
 </div>
 </footer>
 <div class="sr-only" aria-live="polite" data-copy-status></div>
