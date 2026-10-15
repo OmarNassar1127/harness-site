@@ -36,3 +36,5 @@
 .flag-face[data-on] { fill: var(--signal); stroke: var(--signal-ink); }
 .card-hole { fill: var(--cavity-floor); stroke: var(--anatomy-lo); stroke-width: var(--anatomy-weight); }
 .tally-digits { font-family: var(--anatomy-mono); font-size: 4.4px; letter-spacing: 0.08em; fill: var(--anatomy-hi); font-variant-numeric: tabular-nums; }
+.slot { fill: var(--cavity-floor); stroke: var(--anatomy-lo); stroke-width: var(--anatomy-weight); }
+.vent { fill: var(--cavity-y); stroke: var(--anatomy-lo); stroke-width: var(--anatomy-weight); }

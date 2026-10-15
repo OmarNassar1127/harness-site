@@ -105,7 +105,7 @@ export function mountGate(root, text) {
     const angle = (G.needleAngle(drop) * 180) / Math.PI;
     needle.setAttribute("transform", `rotate(${angle.toFixed(2)} ${G.DIAL.u} ${G.DIAL.v})`);
     tally.textContent = String(S.shipped).padStart(4, "0");
-    const line = readoutOf();
+    const line = performance.now() < flashUntil ? flashText : readoutOf();
     if (readout.textContent !== line) readout.textContent = line;
   }
 
@@ -272,10 +272,10 @@ export function mountGate(root, text) {
     last = now;
     if (now >= quietUntil) step(dt, false);
     draw();
-    frame = visible && !still.matches ? requestAnimationFrame(tick) : 0;
+    frame = visible && !still.matches && !paused ? requestAnimationFrame(tick) : 0;
   };
   const run = () => {
-    if (!frame && visible && !still.matches) {
+    if (!frame && visible && !still.matches && !paused) {
       last = 0;
       frame = requestAnimationFrame(tick);
     }
@@ -287,6 +287,14 @@ export function mountGate(root, text) {
     },
     { rootMargin: "120px 0px" },
   ).observe(stage);
+
+  let flashText = "";
+  let flashUntil = 0;
+  function flash(line) {
+    flashText = line;
+    flashUntil = performance.now() + 1800;
+    draw();
+  }
 
   function say(line) {
     if (announce && document.activeElement === stage) announce.textContent = line;
@@ -322,21 +330,32 @@ export function mountGate(root, text) {
     if (["rise", "toGate"].includes(S.phase) && seatedCount() > 1) {
       const options = S.seated.map((v, i) => (v ? i : -1)).filter((i) => i >= 0);
       S.seated[options[Math.floor(Math.random() * options.length)]] = false;
+      flash(text.pulled(seatedCount()));
       say(text.pulled(seatedCount()));
     } else {
       S.pulls = Math.min(3, S.pulls + 1);
+      flash(text.pulledNext);
       say(text.pulledNext);
     }
     run();
   }
 
-  stage.addEventListener("click", pull);
-  stage.addEventListener("keydown", (event) => {
-    if (event.key === " " || event.key === "Enter") {
-      event.preventDefault();
-      pull();
-    }
+  // The stage is a native button, so Enter and Space arrive here as clicks.
+  stage.addEventListener("click", () => {
+    if (paused) setPaused(false);
+    pull();
   });
+
+  // Motion that runs longer than five seconds next to other content gets a pause control.
+  const pauseButton = root.querySelector("[data-pause]");
+  let paused = false;
+  function setPaused(value) {
+    paused = value;
+    pauseButton.setAttribute("aria-pressed", String(paused));
+    pauseButton.textContent = paused ? pauseButton.dataset.labelPlay : pauseButton.dataset.labelPause;
+    if (!paused) run();
+  }
+  pauseButton?.addEventListener("click", () => setPaused(!paused));
   stage.addEventListener("focus", () => announce && (announce.textContent = readoutOf()));
   still.addEventListener?.("change", () => (still.matches ? stillPose(false) : run()));
 

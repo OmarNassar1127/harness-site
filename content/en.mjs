@@ -58,7 +58,7 @@ export default {
     hint: "Tap to edit the card",
     aria: "Canary reader figure. Press Enter or Space to remove a fact from the next card.",
     caption:
-      "The instruction file is the card and each canary is a pin that must pass through a fact on it. An edit that drops a fact blocks a pin, its flag goes up and the deploy stays locked until the file and the canary agree again.",
+      "The instruction file is the card and each canary is a pin that must pass through a fact on it. An edit that drops a fact leaves one pin standing on the card: the head cannot bottom out, and the deploy bolt stays in its keeper until the file and the canary agree again.",
     keys: [
       { mark: "lit", label: "A canary that lost its fact" },
       { mark: "raised", label: "The instruction file, punched with four facts" },
@@ -68,7 +68,7 @@ export default {
   incidents: {
     title: "Incident log",
     intro:
-      "Every check I install exists because it broke first on the Mac mini that runs my own agents: a chat agent I use from my phone, scheduled jobs, and the harness around them. Six of those incidents, written up as postmortems.",
+      "Every check I install is there because that failure already happened to me, on the Mac mini that runs my own agents, including the chat agent I use from my phone. Here are six of those incidents, written up as postmortems.",
     labels: { broke: "What broke", found: "How it was found", now: "What runs now" },
     items: [
       {
@@ -76,16 +76,16 @@ export default {
         area: "completion gate",
         title: "The gate that judged nothing for five days",
         broke:
-          "Every reply was meant to pass a second-model review before it reached me. All 124 reviews timed out: the budget was 8 seconds, and a bare judge call on that machine takes 4 to 6 before the real prompt is added.",
-        found: "A duration column stuck at about 8,010 ms on every row. The gate had failed open and logged each timeout as a normal approval.",
-        now: "The budget comes from a measured floor (now 30 seconds), every fail-open records its reason, and one query proves the gate is alive.",
+          "Every reply was meant to pass a second-model review before it reached me. All 124 reviews timed out: the budget was 8\u00a0seconds, and a bare judge call on that machine takes 4 to 6 before the real prompt is added.",
+        found: "A duration column stuck at about 8,010\u00a0ms on every row. The gate had failed open and logged each timeout as a normal approval.",
+        now: "The budget comes from a measured floor (now 30\u00a0seconds), every fail-open records its reason, and one query proves the gate is alive.",
       },
       {
         date: "2026-07-25",
         area: "headless jobs",
         title: "“No tools” that meant every tool",
         broke:
-          "A nightly eval job ran claude -p --allowedTools \"\" and its comments said that meant zero tools. The empty value is dropped, so every tool stayed live. One run built a 229 MB Python environment from a spec it made up.",
+          "A nightly eval job ran `claude -p --allowedTools \"\"` and its comments said that meant zero tools. The empty value is dropped, so every tool stayed live. One run built a 229\u00a0MB Python environment from a spec it made up.",
         found: "While hardening the job. Blocking Bash alone did not help: the model reached the shell through another tool.",
         now: "Headless jobs carry a deny-all PreToolUse hook written inline in their settings, so there is no script file that can go missing and fail open. An audit then found four more jobs with the same flag.",
       },
@@ -95,8 +95,8 @@ export default {
         title: "Two deploys refused after a tidy-up",
         broke:
           "A cleanup of the agent’s memory index rewrote one line and dropped the hostname a canary asks about. The deploy gate refused two deploys with “context canaries 3/4”.",
-        found: "By the canaries, as designed, and a control call ruled out a quota blip. The cost: it surfaced three minutes into a build and looked like a code regression.",
-        now: "The four canaries run in about 35 seconds after any edit to the instruction files, before a deploy. When a canary and a doc disagree, both get fixed. The canary is never loosened.",
+        found: "The canaries caught it, as designed, and a control call ruled out a quota blip. But it only surfaced three minutes into a build, where it looked like a code regression.",
+        now: "The four canaries run in about 35\u00a0seconds after any edit to the instruction files, before a deploy. When a canary and a doc disagree, both get fixed. The canary is never loosened.",
       },
       {
         date: "2026-08-22",
@@ -159,6 +159,11 @@ export default {
     title: "Tell me what keeps breaking.",
     body: "Email a few lines about your setup and I reply with a fixed scope and price.",
     x: "Or message me on X",
+    pause: "Pause",
+    play: "Play",
+    preview: "The email opens like this",
+    to: "To",
+    subject: "Subject",
   },
   footer: { line: "Omar Nassar, AI engineer in the Netherlands." },
 };

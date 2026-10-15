@@ -22,9 +22,11 @@ mkdirSync(join(ROOT, "src/generated"), { recursive: true });
 writeFileSync(join(ROOT, "src/generated/iso.css"), k.ISO_CSS);
 
 const esc = (text) => String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+// Copy may mark commands with backticks; they render as <code>.
+const rich = (text) => esc(text).replace(/`([^`]+)`/g, '<code translate="no">$1</code>');
 const mailto = (t) => `mailto:${EMAIL}?subject=${encodeURIComponent(t.mail.subject)}&body=${encodeURIComponent(t.mail.body)}`;
 
-function plate({ id, t, svg, readout }) {
+function plate({ id, t, svg, readout, pause, play }) {
   const corner = (name, text, extra = "") => `<span class="iso-plate-corner" data-corner="${name}"${extra}>${esc(text)}</span>`;
   const keys = t.keys
     .map((key) => {
@@ -35,7 +37,8 @@ function plate({ id, t, svg, readout }) {
   return `<figure class="iso iso-figure" data-theme="light" data-figure="${id}">
 <div class="iso-plate">
 <div class="iso-plate-corners" aria-hidden="true">${corner("fig", t.fig)}${corner("title", t.title)}${corner("hint", t.hint)}${corner("readout", readout, " data-readout")}</div>
-<div class="iso-stage" tabindex="0" role="button" aria-label="${esc(t.aria)}">${svg}</div>
+<button type="button" class="iso-pause" data-pause data-label-pause="${esc(pause)}" data-label-play="${esc(play)}" aria-pressed="false">${esc(pause)}</button>
+<button type="button" class="iso-stage" aria-label="${esc(t.aria)}">${svg}</button>
 <div class="sr-only" aria-live="polite" data-announce></div>
 </div>
 <figcaption class="iso-legend"><span class="iso-keys">${keys}</span><span class="iso-caption">${esc(t.caption)}</span></figcaption>
@@ -148,10 +151,10 @@ const ctaButton = (t, extra = "") => `<a class="btn btn-primary${extra}" href="$
 function body(t, other) {
   const [line1, lead, em] = t.hero.title;
   const gateSvg = G.figure(HELD_POSE);
-  const gate = plate({ id: "gate", t: t.gate, svg: gateSvg, readout: t.gate.readout.held(3) });
-  const canary = C ? plate({ id: "canary", t: t.canary, svg: C.figure(C.REST_POSE), readout: t.canary.readout.pass }) : "";
+  const gate = plate({ id: "gate", t: t.gate, svg: gateSvg, readout: t.gate.readout.held(3), pause: t.close.pause, play: t.close.play });
+  const canary = C ? plate({ id: "canary", t: t.canary, svg: C.figure(C.REST_POSE), readout: t.canary.readout.fail(3), pause: t.close.pause, play: t.close.play }) : "";
   const install = t.install.items
-    .map((item) => `<li class="part"><h3 class="part-name">${esc(item.name)}</h3><p>${esc(item.body)}</p></li>`)
+    .map((item) => `<li class="part"><h3 class="part-name">${esc(item.name)}</h3><p>${rich(item.body)}</p></li>`)
     .join("");
   const incidents = t.incidents.items
     .map(
@@ -160,9 +163,9 @@ function body(t, other) {
 <div class="incident-body">
 <h3 class="incident-title">${esc(item.title)}</h3>
 <dl class="incident-fields">
-<div><dt>${esc(t.incidents.labels.broke)}</dt><dd>${esc(item.broke)}</dd></div>
-<div><dt>${esc(t.incidents.labels.found)}</dt><dd>${esc(item.found)}</dd></div>
-<div class="is-now"><dt>${esc(t.incidents.labels.now)}</dt><dd>${esc(item.now)}</dd></div>
+<div><dt>${esc(t.incidents.labels.broke)}</dt><dd>${rich(item.broke)}</dd></div>
+<div><dt>${esc(t.incidents.labels.found)}</dt><dd>${rich(item.found)}</dd></div>
+<div class="is-now"><dt>${esc(t.incidents.labels.now)}</dt><dd>${rich(item.now)}</dd></div>
 </dl>
 </div>
 </article>`,
@@ -175,7 +178,7 @@ function body(t, other) {
   return `<a class="skip" href="#main">${esc(t.skip)}</a>
 <header class="nav-wrap">
 <nav class="nav" aria-label="${t.lang === "nl" ? "Hoofdmenu" : "Main"}">
-<a class="wordmark" href="${t.path}" aria-label="${esc(t.nav.home)}">Omar Nassar</a>
+<a class="wordmark" translate="no" href="${t.path}" aria-label="${esc(t.nav.home)}">Omar Nassar</a>
 <ul class="nav-links">
 <li><a href="#install">${esc(t.nav.install)}</a></li>
 <li><a href="#incidents">${esc(t.nav.incidents)}</a></li>
@@ -250,11 +253,18 @@ ${canary ? `<div class="install-figure">${canary}</div>` : ""}
 </section>
 
 <section class="section close" aria-labelledby="close-title">
-<div class="wrap">
+<div class="wrap close-grid">
+<div class="close-copy">
 <h2 id="close-title" class="display-1 close-title">${esc(t.close.title)}</h2>
 <p class="lede">${esc(t.close.body)}</p>
 <div class="actions">${ctaButton(t)}${copyButton}</div>
-<p class="contact-line"><a class="mail" href="${esc(mailto(t))}">${EMAIL}</a><span aria-hidden="true"> </span><a class="xlink" href="${X_URL}" rel="me noopener">${esc(t.close.x)}: @${X_HANDLE}</a></p>
+<p class="contact-line"><a class="mail" href="${esc(mailto(t))}">${EMAIL}</a><a class="xlink" href="${X_URL}" rel="me noopener">${esc(t.close.x)}: @${X_HANDLE}</a></p>
+</div>
+<div class="mail-card">
+<p class="mail-card-label">${esc(t.close.preview)}</p>
+<dl class="mail-head"><div><dt>${esc(t.close.to)}</dt><dd>${EMAIL}</dd></div><div><dt>${esc(t.close.subject)}</dt><dd>${esc(t.mail.subject)}</dd></div></dl>
+<div class="mail-body">${t.mail.body.trim().split("\n").map((line) => `<p>${esc(line)}<span class="mail-blank" aria-hidden="true"></span></p>`).join("")}</div>
+</div>
 </div>
 </section>
 </main>
