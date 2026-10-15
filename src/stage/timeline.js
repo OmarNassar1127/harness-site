@@ -84,13 +84,13 @@ const on = (keys) => track(keys);
 // Where each 3D moment sits on screen: landscape (L) and portrait (P) frames.
 const FRAMES = {
   gate: {
-    L: frameTrack([[0, { x: 0.6, y: 0.565, s: 0.66 }], [at("hero", 0.7), { x: 0.6, y: 0.565, s: 0.66 }], [at("catch", 0.2), { x: 0.71, y: 0.54, s: 0.98 }]]),
-    P: frameTrack([[0, { x: 0.6, y: 0.555, s: 1.3 }], [at("hero", 0.7), { x: 0.6, y: 0.555, s: 1.3 }], [at("catch", 0.2), { x: 0.5, y: 0.6, s: 1.6 }]]),
+    L: frameTrack([[0, { x: 0.71, y: 0.54, s: 0.9 }], [at("hero", 0.7), { x: 0.71, y: 0.54, s: 0.9 }], [at("catch", 0.2), { x: 0.71, y: 0.54, s: 0.98 }]]),
+    P: frameTrack([[0, { x: 0.6, y: 0.545, s: 1.36 }], [at("hero", 0.7), { x: 0.6, y: 0.545, s: 1.36 }], [at("catch", 0.2), { x: 0.5, y: 0.6, s: 1.6 }]]),
   },
-  parts: { L: hold({ x: 0.55, y: 0.57, s: 0.92 }), P: hold({ x: 0.5, y: 0.585, s: 1.38 }) },
+  parts: { L: hold({ x: 0.56, y: 0.57, s: 1.0 }), P: hold({ x: 0.5, y: 0.585, s: 1.38 }) },
   wire: { L: hold({ x: 0.27, y: 0.56, s: 0.8 }), P: hold({ x: 0.5, y: 0.42, s: 1.0 }) },
-  box: { L: hold({ x: 0.5, y: 0.8, s: 0.54 }), P: hold({ x: 0.5, y: 0.71, s: 1.02 }) },
-  mail: { L: hold({ x: 0.72, y: 0.55, s: 0.86 }), P: hold({ x: 0.5, y: 0.765, s: 1.05 }) },
+  box: { L: hold({ x: 0.5, y: 0.8, s: 0.6 }), P: hold({ x: 0.5, y: 0.69, s: 1.22 }) },
+  mail: { L: hold({ x: 0.72, y: 0.55, s: 0.86 }), P: hold({ x: 0.5, y: 0.75, s: 1.2 }) },
 };
 
 const T_ = {
@@ -104,7 +104,7 @@ const T_ = {
   leadBack: track([[at("catch", 0.6), 0], [at("catch", 0.85), 1]]),
   shut: track([[at("catch", 0.25), 0], [at("catch", 0.32), 1], [at("catch", 0.88), 1], [at("catch", 0.97), 0]]),
   alarm: track([[at("catch", 0.31), 0], [at("catch", 0.35), 1], [at("catch", 0.88), 1], [at("catch", 0.97), 0]]),
-  stampK: track([[at("catch", 0.34), 0], [at("catch", 0.45), 1], [at("catch", 0.5), 1], [at("catch", 0.62), 0]]),
+  stampK: track([[at("catch", 0.34), 0], [at("catch", 0.45), 1], [at("catch", 0.5), 1], [at("catch", 0.57), 0]]),
   mark: track([[at("catch", 0.45), 0], [at("catch", 0.47), 1]]),
   // the six parts
   xOn: on([[at("parts", 0.02), 0], [at("parts", 0.14), 1], [at("parts", 0.9), 1], [at("parts", 1), 0]]),

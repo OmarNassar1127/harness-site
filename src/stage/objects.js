@@ -20,7 +20,6 @@ export function makeGate(M) {
     d.position.set(sx * 0.81, 0, -0.04);
     g.add(d);
     put(d, rbox(0.81, 1.62, 0.07, 0.025), M.steel, -sx * 0.405, 0, 0);
-    put(d, rbox(0.05, 0.5, 0.02, 0.01), M.ink, -sx * 0.7, 0, 0.045);
     return d;
   });
   // lamp on a stem

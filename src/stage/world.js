@@ -20,20 +20,28 @@ export async function buildWorld({ font }) {
   const shared = {};
   const root = new THREE.Group();
   const moments = {};
-  const moment = (name, radius) => {
+  const floor = new THREE.ShadowMaterial({ opacity: 0.17, depthWrite: false });
+  const moment = (name, radius, floorY = -0.95) => {
     const g = new THREE.Group();
     root.add(g);
     moments[name] = { group: g, radius };
+    // a floor that shows only the soft shadow of what floats above it
+    const catcher = new THREE.Mesh(new THREE.PlaneGeometry(radius * 2.6, radius * 2.6), floor);
+    catcher.rotation.x = -Math.PI / 2;
+    catcher.position.y = radius * floorY;
+    catcher.receiveShadow = true;
+    catcher.userData.catcher = true;
+    g.add(catcher);
     return g;
   };
 
   // ------------------------------------------------ gate: replies stream in, one gets caught and stamped
-  const G = moment("gate", 2.6);
+  const G = moment("gate", 2.6, -0.78);
   const gate = makeGate(M);
   G.add(gate.group);
   await pause();
   const path = new THREE.CatmullRomCurve3(
-    [[-6.4, -1.1, 2.4], [-4.4, -0.2, 1.6], [-2.6, 0.35, 1.1], [-1.0, 0.12, 0.8], [0, 0, 0.45]].map((p) => new THREE.Vector3(...p)),
+    [[-5.8, -1.75, 2.2], [-4.2, -1.2, 1.6], [-2.5, -0.55, 1.1], [-1.0, -0.12, 0.8], [0, 0, 0.45]].map((p) => new THREE.Vector3(...p)),
   );
   const bubbles = [0, 1, 2, 3, 4].map(() => {
     const b = makeBubble(M, font, shared);
@@ -47,7 +55,7 @@ export async function buildWorld({ font }) {
 
   await pause();
   // ------------------------------------------------ the six parts, clustered, then spread out with labels
-  const X = moment("parts", 3.2);
+  const X = moment("parts", 3.2, -0.62);
   const trio = new THREE.Group();
   const trioBirds = [-0.42, 0, 0.42].map((x) => {
     const b = makeBird(M);
@@ -81,7 +89,7 @@ export async function buildWorld({ font }) {
 
   await pause();
   // ------------------------------------------------ four canaries on a wire, and the fact that fell out of memory
-  const R = moment("wire", 2.3);
+  const R = moment("wire", 2.3, -0.5);
   const wireCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(-2.1, 0.05, 0), new THREE.Vector3(0, -0.14, 0), new THREE.Vector3(2.1, 0.05, 0)]);
   R.add(new THREE.Mesh(new THREE.TubeGeometry(wireCurve, 64, 0.022, 10, false), M.ink));
   for (const x of [-2.1, 2.1]) {
@@ -102,7 +110,7 @@ export async function buildWorld({ font }) {
 
   await pause();
   // ------------------------------------------------ the box: the six parts drop in, the lid closes, a bow on top
-  const B = moment("box", 1.7);
+  const B = moment("box", 1.7, -0.33);
   const box = makeBox(M);
   box.group.position.y = -0.55;
   B.add(box.group);
@@ -117,7 +125,7 @@ export async function buildWorld({ font }) {
 
   await pause();
   // ------------------------------------------------ the envelope
-  const E = moment("mail", 1.85);
+  const E = moment("mail", 1.85, -0.62);
   const mail = makeEnvelope(M);
   E.add(mail.group);
 
@@ -165,7 +173,7 @@ export async function buildWorld({ font }) {
       });
       const k = P.stampK;
       stamp.group.visible = k > 0.001;
-      stamp.group.position.set(lerp(3.4, 0, k), lerp(0.9, 0, k), lerp(2.2, 0.62, k));
+      stamp.group.position.set(lerp(4.6, 0, k), lerp(0.6, 0, k), lerp(2.4, 0.62, k));
       stamp.group.rotation.set(lerp(0.9, Math.PI / 2, k), lerp(-0.9, 0, k), lerp(-0.9, 0, k));
     }
 
@@ -182,7 +190,7 @@ export async function buildWorld({ font }) {
         const [lx, ly] = layout[p.i];
         const [cx, cy, cz] = CLUSTER[p.i];
         p.holder.position.set(lerp(cx, lx, e), lerp(cy, ly, e) + float(p.i, 0.07) * e, lerp(cz, 0, e));
-        p.holder.scale.setScalar(p.scale * (portrait ? 0.64 : 0.76) * lerp(0.62, 1, e));
+        p.holder.scale.setScalar(p.scale * (portrait ? 0.72 : 0.88) * lerp(0.62, 1, e));
         p.holder.rotation.set(float(p.i + 3, 0.06), lerp(TAU * 0.5 + p.i, 0, e) - P.xSpin * 0.6 + float(p.i, 0.12), float(p.i + 1, 0.04));
       });
       const [pGate, , pHook, pDrawers, pClock, pPhone] = parts.map((p) => p.obj);

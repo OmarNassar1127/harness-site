@@ -159,7 +159,7 @@ function body(t, other) {
 <nav class="nav" aria-label="${esc(t.nav.main)}">
 <a class="wordmark" translate="no" href="${t.path}" aria-label="${esc(t.nav.home)}">Omar Nassar</a>
 <div class="nav-end">
-<a class="lang" href="${other.path}" hreflang="${other.lang}" lang="${other.lang}" aria-label="${esc(t.nav.switchLabel)}">${esc(t.nav.switchShort)}</a>
+<a class="lang" href="${other.path}" hreflang="${other.lang}" lang="${other.lang}" aria-label="${esc(t.nav.switchLabel)} (${esc(t.nav.switchShort)})">${esc(t.nav.switchShort)}</a>
 ${cta(t, " btn-small")}
 </div>
 </nav>

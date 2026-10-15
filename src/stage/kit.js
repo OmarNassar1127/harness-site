@@ -10,12 +10,12 @@ export const UNLIT = new THREE.Color(HEX.unlit);
 
 export function materials() {
   return {
-    ceramic: new THREE.MeshPhysicalMaterial({ color: HEX.ceramic, roughness: 0.3, clearcoat: 0.9, clearcoatRoughness: 0.12 }),
+    ceramic: new THREE.MeshPhysicalMaterial({ color: HEX.ceramic, roughness: 0.36, clearcoat: 1, clearcoatRoughness: 0.05 }),
     paper: new THREE.MeshPhysicalMaterial({ color: HEX.paper, roughness: 0.72 }),
-    steel: new THREE.MeshPhysicalMaterial({ color: HEX.steel, metalness: 0.9, roughness: 0.26 }),
+    steel: new THREE.MeshPhysicalMaterial({ color: HEX.steel, metalness: 1, roughness: 0.2 }),
     graphite: new THREE.MeshPhysicalMaterial({ color: HEX.graphite, metalness: 0.35, roughness: 0.34, clearcoat: 0.7, clearcoatRoughness: 0.1 }),
     ink: new THREE.MeshPhysicalMaterial({ color: HEX.ink, roughness: 0.38, clearcoat: 0.6 }),
-    orange: new THREE.MeshPhysicalMaterial({ color: HEX.orange, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.08 }),
+    orange: new THREE.MeshPhysicalMaterial({ color: HEX.orange, roughness: 0.32, clearcoat: 1, clearcoatRoughness: 0.04 }),
     rubber: new THREE.MeshPhysicalMaterial({ color: HEX.red, roughness: 0.6 }),
     glow: new THREE.MeshBasicMaterial({ color: HEX.orange, toneMapped: false }),
     white: new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }),
