@@ -22,9 +22,11 @@ export async function buildWorld({ font }) {
   const moments = {};
   const floor = new THREE.ShadowMaterial({ opacity: 0.17, depthWrite: false });
   const moment = (name, radius, floorY = -0.95) => {
+    // floorY null = no floor: the moment floats, and an edge-on floor would read as a grey smear
     const g = new THREE.Group();
     root.add(g);
     moments[name] = { group: g, radius };
+    if (floorY === null) return g;
     // a floor that shows only the soft shadow of what floats above it
     const catcher = new THREE.Mesh(new THREE.PlaneGeometry(radius * 2.6, radius * 2.6), floor);
     catcher.rotation.x = -Math.PI / 2;
@@ -55,7 +57,7 @@ export async function buildWorld({ font }) {
 
   await pause();
   // ------------------------------------------------ the six parts, clustered, then spread out with labels
-  const X = moment("parts", 3.2, -0.62);
+  const X = moment("parts", 3.2, null);
   const trio = new THREE.Group();
   const trioBirds = [-0.42, 0, 0.42].map((x) => {
     const b = makeBird(M);

@@ -76,15 +76,19 @@ export async function createStage(canvas, { font, fixedFrame = null, maxDpr = 2 
   const portrait = () => width / height < PORTRAIT;
   // On portrait screens a moment can sit under its scene's copy: tops[name] is the copy's
   // bottom edge as a fraction of the height. The moment then shrinks and drops to fit below it.
+  // bottoms[name] does the same for copy below the moment (its top edge as a fraction).
   const tops = {};
-  const setTop = (name, frac) => (tops[name] = frac);
+  const bottoms = {};
+  const setTop = (name, top, bottom = 0.97) => ((tops[name] = top), (bottoms[name] = bottom));
   const fit = (fr, name) => {
     const top = tops[name];
     if (top == null) return fr;
+    const bottom = bottoms[name];
     const min = Math.min(width, height);
-    const room = Math.max(0.2, 0.97 - top) * height; // px between the copy and the bottom edge
+    const room = Math.max(0.2, bottom - top) * height; // px between the copy above and below
     const s = Math.min(fr.s, room / min);
-    return { ...fr, s, y: Math.max(fr.y, top + (s * min) / 2 / height) };
+    const half = (s * min) / 2 / height;
+    return { ...fr, s, y: Math.min(Math.max(fr.y, top + half), bottom - half) };
   };
   const frameOf = (P, name) => fixedFrame || (portrait() ? fit(P.frames[name].P, name) : P.frames[name].L);
 

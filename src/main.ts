@@ -161,6 +161,16 @@ function startMotion() {
       const bottom = copy.getBoundingClientRect().bottom - scene.getBoundingClientRect().top;
       stage.setTop(moment, (bottom + 12) / canvas.clientHeight);
     }
+    // The six parts sit between the headline and the closing line; their labels need ~44px above each part.
+    const parts = document.getElementById("parts");
+    const head = parts?.querySelector<HTMLElement>(".copy-top");
+    const foot = parts?.querySelector<HTMLElement>(".copy-bottom");
+    if (parts && head && foot) {
+      // Layout offsets, not client rects: the copy is mid-animation (translated) when this runs.
+      const top = head.offsetTop + head.offsetHeight + 44;
+      const bottom = foot.offsetTop - 8;
+      stage.setTop("parts", top / canvas.clientHeight, bottom / canvas.clientHeight);
+    }
     dirty = true;
   };
   new ResizeObserver(resize).observe(canvas);
