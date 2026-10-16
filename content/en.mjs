@@ -60,7 +60,7 @@ export default {
     sub: "Email a few lines. I reply with a fixed scope and price.",
     copy: "Copy email",
     copied: "Copied",
-    x: "Or message me on X",
+    x: "Or message me on LinkedIn",
     alt: "The harness module from the front, gate open, lamp ring orange.",
   },
   footer: { line: "Omar Nassar, AI engineer in the Netherlands." },

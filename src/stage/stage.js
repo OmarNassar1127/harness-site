@@ -74,7 +74,19 @@ export async function createStage(canvas, { font, fixedFrame = null, maxDpr = 2 
   }
 
   const portrait = () => width / height < PORTRAIT;
-  const frameOf = (P, name) => fixedFrame || (portrait() ? P.frames[name].P : P.frames[name].L);
+  // On portrait screens a moment can sit under its scene's copy: tops[name] is the copy's
+  // bottom edge as a fraction of the height. The moment then shrinks and drops to fit below it.
+  const tops = {};
+  const setTop = (name, frac) => (tops[name] = frac);
+  const fit = (fr, name) => {
+    const top = tops[name];
+    if (top == null) return fr;
+    const min = Math.min(width, height);
+    const room = Math.max(0.2, 0.97 - top) * height; // px between the copy and the bottom edge
+    const s = Math.min(fr.s, room / min);
+    return { ...fr, s, y: Math.max(fr.y, top + (s * min) / 2 / height) };
+  };
+  const frameOf = (P, name) => fixedFrame || (portrait() ? fit(P.frames[name].P, name) : P.frames[name].L);
 
   /** World position that puts a moment of radius R at its screen frame. */
   function placer(P) {
@@ -138,5 +150,5 @@ export async function createStage(canvas, { font, fixedFrame = null, maxDpr = 2 
   if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
   renderPose(pose(0));
 
-  return { renderer, setSize, render, renderPose, anchors, bounds, canvas };
+  return { renderer, setSize, setTop, render, renderPose, anchors, bounds, canvas };
 }

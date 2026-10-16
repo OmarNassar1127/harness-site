@@ -11,7 +11,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SITE = "https://harness.omardev.xyz";
 const EMAIL = "omar.portero.nassar1@gmail.com";
 const X_HANDLE = "GodelTrabuco69";
-const X_URL = `https://x.com/${X_HANDLE}`;
+const LINKEDIN_URL = "https://www.linkedin.com/in/omar-nassar-ai/";
 const PRICE = 1500;
 
 // Label positions on the exploded still (fractions of the image), written by scripts/keyframes.mjs.
@@ -31,7 +31,7 @@ function jsonLd(t, url) {
     name: "Omar Nassar",
     jobTitle: "AI engineer",
     email: `mailto:${EMAIL}`,
-    sameAs: [X_URL],
+    sameAs: [LINKEDIN_URL],
     knowsAbout: ["Claude Code", "AI agents", "Agent evaluation", "Developer tooling"],
   };
   const offer = {
@@ -233,7 +233,7 @@ ${still("price", t.price.alt)}
 <h2 id="book-title" class="display-2" data-a="title">${words(t.book.title)}</h2>
 <p class="sub">${esc(t.book.sub)}</p>
 <div class="actions">${cta(t)}${copyButton}</div>
-<p class="xline"><a href="${X_URL}" rel="me noopener">${esc(t.book.x)}: @${X_HANDLE}</a></p>
+<p class="xline"><a href="${LINKEDIN_URL}" rel="me noopener">${esc(t.book.x)}</a></p>
 </div>
 ${still("book", t.book.alt)}
 </section>
@@ -243,7 +243,7 @@ ${still("book", t.book.alt)}
 <footer class="footer">
 <div class="footer-row">
 <p>${esc(t.footer.line)}</p>
-<p class="footer-links"><a href="${esc(mailto(t))}">${EMAIL}</a><a href="${X_URL}" rel="me noopener">X</a><a href="${other.path}" hreflang="${other.lang}" lang="${other.lang}">${esc(t.nav.switchLabel)}</a></p>
+<p class="footer-links"><a href="${esc(mailto(t))}">${EMAIL}</a><a href="${LINKEDIN_URL}" rel="me noopener">LinkedIn</a><a href="${other.path}" hreflang="${other.lang}" lang="${other.lang}">${esc(t.nav.switchLabel)}</a></p>
 </div>
 </footer>
 <div class="sr-only" aria-live="polite" data-copy-status></div>

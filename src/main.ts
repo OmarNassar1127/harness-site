@@ -153,6 +153,14 @@ function startMotion() {
   const resize = () => {
     if (!stage) return;
     stage.setSize(canvas.clientWidth, canvas.clientHeight);
+    // Keep the box and the envelope below their copy on short phone screens.
+    for (const [id, moment] of [["price", "box"], ["book", "mail"]] as const) {
+      const scene = document.getElementById(id);
+      const copy = scene?.querySelector<HTMLElement>(".copy");
+      if (!scene || !copy) continue;
+      const bottom = copy.getBoundingClientRect().bottom - scene.getBoundingClientRect().top;
+      stage.setTop(moment, (bottom + 12) / canvas.clientHeight);
+    }
     dirty = true;
   };
   new ResizeObserver(resize).observe(canvas);

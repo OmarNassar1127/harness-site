@@ -60,7 +60,7 @@ export default {
     sub: "Mail een paar regels. Ik stuur een vaste scope en prijs terug.",
     copy: "Kopieer e-mailadres",
     copied: "Gekopieerd",
-    x: "Of stuur me een bericht op X",
+    x: "Of stuur me een bericht op LinkedIn",
     alt: "De harness-module van voren, gate open, lampring oranje.",
   },
   footer: { line: "Omar Nassar, AI engineer in Nederland." },
