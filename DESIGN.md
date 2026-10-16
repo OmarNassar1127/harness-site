@@ -99,7 +99,7 @@ rules: no em-dashes, straight quotes. Dutch is written for Dutch developers with
 "je", not translated word for word.
 
 One call to action, one label: "Book a setup" / "Plan een setup", a mailto to
-omar.portero.nassar1@gmail.com, in the nav, the hero and the last scene. Next to
+omarnassar1127@gmail.com, in the nav, the hero and the last scene. Next to
 the last one: "Copy email", for phones without a mail app, and the X link.
 
 ## Visual system

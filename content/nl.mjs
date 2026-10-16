@@ -61,6 +61,7 @@ export default {
     copy: "Kopieer e-mailadres",
     copied: "Gekopieerd",
     x: "Of stuur me een bericht op LinkedIn",
+    emailMe: "Mail me",
     alt: "De harness-module van voren, gate open, lampring oranje.",
   },
   footer: { line: "Omar Nassar, AI engineer in Nederland." },

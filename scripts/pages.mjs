@@ -9,7 +9,7 @@ import { TOTAL, TERM, STILLS } from "../src/stage/timeline.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SITE = "https://harness.omardev.xyz";
-const EMAIL = "omar.portero.nassar1@gmail.com";
+const EMAIL = "omarnassar1127@gmail.com";
 const X_HANDLE = "GodelTrabuco69";
 const LINKEDIN_URL = "https://www.linkedin.com/in/omar-nassar-ai/";
 const PRICE = 1500;
@@ -243,7 +243,7 @@ ${still("book", t.book.alt)}
 <footer class="footer">
 <div class="footer-row">
 <p>${esc(t.footer.line)}</p>
-<p class="footer-links"><a href="${esc(mailto(t))}">${EMAIL}</a><a href="${LINKEDIN_URL}" rel="me noopener">LinkedIn</a><a href="${other.path}" hreflang="${other.lang}" lang="${other.lang}">${esc(t.nav.switchLabel)}</a></p>
+<p class="footer-links"><a href="${esc(mailto(t))}">${esc(t.book.emailMe)}</a><a href="${LINKEDIN_URL}" rel="me noopener">LinkedIn</a><a href="${other.path}" hreflang="${other.lang}" lang="${other.lang}">${esc(t.nav.switchLabel)}</a></p>
 </div>
 </footer>
 <div class="sr-only" aria-live="polite" data-copy-status></div>

@@ -61,6 +61,7 @@ export default {
     copy: "Copy email",
     copied: "Copied",
     x: "Or message me on LinkedIn",
+    emailMe: "Email me",
     alt: "The harness module from the front, gate open, lamp ring orange.",
   },
   footer: { line: "Omar Nassar, AI engineer in the Netherlands." },
