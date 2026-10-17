@@ -64,6 +64,6 @@ export default {
     emailMe: "Email me",
     alt: "The harness module from the front, gate open, lamp ring orange.",
   },
-  agents: { path: "/agents/", label: "AI agent on your data" },
+  agents: { path: "https://virelio.nl/en/solutions/", label: "AI agents for your business" },
   footer: { line: "Omar Nassar, AI engineer in the Netherlands." },
 };

@@ -5,9 +5,6 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import en from "../content/en.mjs";
 import nl from "../content/nl.mjs";
-import agentsEn from "../content/agents-en.mjs";
-import agentsNl from "../content/agents-nl.mjs";
-import { renderAgents } from "./agents.mjs";
 import { TOTAL, TERM, STILLS } from "../src/stage/timeline.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -269,11 +266,17 @@ ${body(t, other)}
 writeFileSync(join(ROOT, "index.html"), page(en, nl));
 mkdirSync(join(ROOT, "nl"), { recursive: true });
 writeFileSync(join(ROOT, "nl/index.html"), page(nl, en));
-const shared = { SITE, EMAIL, LINKEDIN_URL };
-mkdirSync(join(ROOT, "agents"), { recursive: true });
-writeFileSync(join(ROOT, "agents/index.html"), renderAgents(agentsEn, agentsNl, shared));
-mkdirSync(join(ROOT, "nl/agents"), { recursive: true });
-writeFileSync(join(ROOT, "nl/agents/index.html"), renderAgents(agentsNl, agentsEn, shared));
+// The business offers live on Virelio. Old /agents/ links (already sent to leads) redirect there.
+const redirect = (to) => `<!doctype html>
+<html><head><meta charset="utf-8"><title>Moved</title>
+<link rel="canonical" href="${to}"><meta name="robots" content="noindex">
+<meta http-equiv="refresh" content="0; url=${to}"><script>location.replace(${JSON.stringify(to)})</script>
+</head><body><a href="${to}">${to}</a></body></html>
+`;
+mkdirSync(join(ROOT, "public/agents"), { recursive: true });
+writeFileSync(join(ROOT, "public/agents/index.html"), redirect("https://virelio.nl/en/solutions/ai-op-je-eigen-data/"));
+mkdirSync(join(ROOT, "public/nl/agents"), { recursive: true });
+writeFileSync(join(ROOT, "public/nl/agents/index.html"), redirect("https://virelio.nl/oplossingen/ai-op-je-eigen-data/"));
 
 // Sitemap with the language pair, and robots.txt.
 const today = new Date().toISOString().slice(0, 10);
@@ -291,8 +294,6 @@ writeFileSync(
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${entry(en, nl)}
 ${entry(nl, en)}
-${entry(agentsEn, agentsNl, "/agents/")}
-${entry(agentsNl, agentsEn, "/agents/")}
 </urlset>
 `,
 );

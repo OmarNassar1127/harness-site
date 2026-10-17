@@ -14,18 +14,4 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://harness.omardev.xyz/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://harness.omardev.xyz/"/>
   </url>
-  <url>
-    <loc>https://harness.omardev.xyz/agents/</loc>
-    <lastmod>2026-10-17</lastmod>
-    <xhtml:link rel="alternate" hreflang="en" href="https://harness.omardev.xyz/agents/"/>
-    <xhtml:link rel="alternate" hreflang="nl" href="https://harness.omardev.xyz/nl/agents/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://harness.omardev.xyz/agents/"/>
-  </url>
-  <url>
-    <loc>https://harness.omardev.xyz/nl/agents/</loc>
-    <lastmod>2026-10-17</lastmod>
-    <xhtml:link rel="alternate" hreflang="nl" href="https://harness.omardev.xyz/nl/agents/"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://harness.omardev.xyz/agents/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://harness.omardev.xyz/agents/"/>
-  </url>
 </urlset>
