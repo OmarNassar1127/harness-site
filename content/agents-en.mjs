@@ -90,7 +90,7 @@ export default {
     title: "Not quite this?",
     sub: "Tell me what eats your team's time and you get a fixed quote within 48 hours.",
     hours: "48h",
-    examples: ["WhatsApp agents", "Voice agents", "Document automation", "Internal tools"],
+    examples: ["Customer support agents", "Voice agents", "Quote agents", "Invoice processing", "Document automation", "Internal tools"],
     cta: "Ask for a quote",
   },
   book: {

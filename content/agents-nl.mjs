@@ -90,7 +90,7 @@ export default {
     title: "Net niet wat je zoekt?",
     sub: "Vertel me wat je team de meeste tijd kost en je hebt binnen 48 uur een vaste offerte.",
     hours: "48u",
-    examples: ["WhatsApp-agents", "Spraakagents", "Documentautomatisering", "Interne tools"],
+    examples: ["Klantenservice-agents", "Spraakagents", "Offerte-agents", "Factuurverwerking", "Documentautomatisering", "Interne tools"],
     cta: "Vraag een offerte",
   },
   book: {
