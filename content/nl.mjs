@@ -64,5 +64,6 @@ export default {
     emailMe: "Mail me",
     alt: "De harness-module van voren, gate open, lampring oranje.",
   },
+  agents: { path: "/nl/agents/", label: "AI-agent op je data" },
   footer: { line: "Omar Nassar, AI engineer in Nederland." },
 };

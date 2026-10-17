@@ -12,6 +12,8 @@ export default defineConfig({
       input: {
         en: resolve(import.meta.dirname, "index.html"),
         nl: resolve(import.meta.dirname, "nl/index.html"),
+        agentsEn: resolve(import.meta.dirname, "agents/index.html"),
+        agentsNl: resolve(import.meta.dirname, "nl/agents/index.html"),
       },
     },
   },

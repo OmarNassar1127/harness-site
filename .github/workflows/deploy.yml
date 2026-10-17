@@ -29,6 +29,8 @@ jobs:
         run: |
           test -f dist/index.html
           test -f dist/nl/index.html
+          test -f dist/agents/index.html
+          test -f dist/nl/agents/index.html
           test -f dist/CNAME
           test -f dist/sitemap.xml
           test -f dist/robots.txt

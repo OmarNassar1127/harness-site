@@ -3,5 +3,7 @@ dist
 figures/out
 index.html
 nl/index.html
+agents/index.html
+nl/agents/index.html
 src/generated
 .DS_Store

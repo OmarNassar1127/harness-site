@@ -5,6 +5,9 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import en from "../content/en.mjs";
 import nl from "../content/nl.mjs";
+import agentsEn from "../content/agents-en.mjs";
+import agentsNl from "../content/agents-nl.mjs";
+import { renderAgents } from "./agents.mjs";
 import { TOTAL, TERM, STILLS } from "../src/stage/timeline.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -243,7 +246,7 @@ ${still("book", t.book.alt)}
 <footer class="footer">
 <div class="footer-row">
 <p>${esc(t.footer.line)}</p>
-<p class="footer-links"><a href="${esc(mailto(t))}">${esc(t.book.emailMe)}</a><a href="${LINKEDIN_URL}" rel="me noopener">LinkedIn</a><a href="${other.path}" hreflang="${other.lang}" lang="${other.lang}">${esc(t.nav.switchLabel)}</a></p>
+<p class="footer-links"><a href="${esc(mailto(t))}">${esc(t.book.emailMe)}</a><a href="${LINKEDIN_URL}" rel="me noopener">LinkedIn</a><a href="${t.agents.path}">${esc(t.agents.label)}</a><a href="${other.path}" hreflang="${other.lang}" lang="${other.lang}">${esc(t.nav.switchLabel)}</a></p>
 </div>
 </footer>
 <div class="sr-only" aria-live="polite" data-copy-status></div>
@@ -266,15 +269,20 @@ ${body(t, other)}
 writeFileSync(join(ROOT, "index.html"), page(en, nl));
 mkdirSync(join(ROOT, "nl"), { recursive: true });
 writeFileSync(join(ROOT, "nl/index.html"), page(nl, en));
+const shared = { SITE, EMAIL, LINKEDIN_URL };
+mkdirSync(join(ROOT, "agents"), { recursive: true });
+writeFileSync(join(ROOT, "agents/index.html"), renderAgents(agentsEn, agentsNl, shared));
+mkdirSync(join(ROOT, "nl/agents"), { recursive: true });
+writeFileSync(join(ROOT, "nl/agents/index.html"), renderAgents(agentsNl, agentsEn, shared));
 
 // Sitemap with the language pair, and robots.txt.
 const today = new Date().toISOString().slice(0, 10);
-const entry = (t, other) => `  <url>
+const entry = (t, other, xDefault = "/") => `  <url>
     <loc>${SITE}${t.path}</loc>
     <lastmod>${today}</lastmod>
     <xhtml:link rel="alternate" hreflang="${t.lang}" href="${SITE}${t.path}"/>
     <xhtml:link rel="alternate" hreflang="${other.lang}" href="${SITE}${other.path}"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE}/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE}${xDefault}"/>
   </url>`;
 mkdirSync(join(ROOT, "public"), { recursive: true });
 writeFileSync(
@@ -283,9 +291,11 @@ writeFileSync(
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${entry(en, nl)}
 ${entry(nl, en)}
+${entry(agentsEn, agentsNl, "/agents/")}
+${entry(agentsNl, agentsEn, "/agents/")}
 </urlset>
 `,
 );
 writeFileSync(join(ROOT, "public/robots.txt"), `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`);
 writeFileSync(join(ROOT, "public/CNAME"), "harness.omardev.xyz\n");
-console.log("pages: index.html, nl/index.html, sitemap.xml, robots.txt, CNAME");
+console.log("pages: index.html, nl/index.html, agents/index.html, nl/agents/index.html, sitemap.xml, robots.txt, CNAME");

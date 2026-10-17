@@ -144,3 +144,51 @@ WebPage), sitemap with the language pair, robots.txt, CNAME. All copy is HTML.
 tracks, `stage.js` the renderer and framing). `scripts/keyframes.mjs` renders the stills into `public/keyframes/` and
 `scripts/og.mjs` the share images; both need Google Chrome and are run by hand.
 GitHub Actions builds and deploys `dist/` to GitHub Pages.
+
+## /agents: the second offer
+
+`/agents/` (en) and `/nl/agents/` (nl). Offer: an AI agent on the company's own
+data. It reads the database or spreadsheets read-only, answers the team in plain
+language and writes the weekly report. €3,500 fixed, live in 2 weeks. Founding
+price €1,750 for the first 2 companies, in exchange for a short case study. 50%
+at the start, 50% after it answers 10 real questions correctly. Optional care
+plan €500/month, first month free, cancel anytime.
+
+Job: a business owner or team lead opens the link on a phone, scrolls once and
+holds four facts: it works on their own data, it can only read, the price is
+fixed, and they pay the second half only when it is right. Then they tap "Book
+your agent" (a mailto).
+
+Exemplar: Apple's product pages again, but their pricing and "why" sections, not
+the 3D hero. Specifically the "Why Apple is the best place to buy" and "Which
+iPhone is right for you" strips on apple.com/iphone and the price beats on
+apple.com/airpods-pro: one big fact per screen, the price as type, a small
+diagram that proves the fact instead of a paragraph. The gap: Apple can show
+reviews and a buy button. This page has no clients yet, so the proof is the
+mechanism (read-only diagram) and the guarantee (10 questions, 50/50 split).
+No testimonials, no logos, no invented numbers; data in the mock-ups is
+skeleton bars.
+
+Scenes, one full screen each, mobile-first:
+
+| # | Scene | Visual |
+|---|---|---|
+| 1 | Hero, 2.3 viewports, scroll-scrubbed | Four sheets fold into one stack, then one answer card grows out of it. |
+| 2 | Ask | Three plain questions, each with a skeleton answer. |
+| 3 | Report | A weekly report card; the bars grow in. |
+| 4 | Read-only | SVG: database and spreadsheets inside a dashed "your infrastructure" line, read arrows to the agent, "write" struck out. |
+| 5 | Price | "fixed €3,500", "Live in 2 weeks.", a 14-day strip that fills to "Live". |
+| 6 | Founding | "The first 2 companies €1,750", €3,500 struck, two founding-spot cards. |
+| 7 | Guarantee | Ten numbered questions light up, then the second 50% fills. |
+| 8 | Care plan | "€500/month": month 1 free, then €500, then "Cancel anytime". |
+| 9 | Open door | Outlined "48h", "Not quite this?", example chips, a quote mailto. |
+| 10 | Book | The prefilled email itself, as a tappable card, plus copy email and LinkedIn. |
+
+Motion: CSS only plus one scroll listener for the hero. Words rise out of masks
+when a section enters; reveals play once. With `prefers-reduced-motion` or no
+JavaScript every scene shows its final state. No WebGL on this page: the 3D
+stage is tied to the home timeline, and a flat fold reads better at phone size.
+
+Build: `content/agents-*.mjs` holds the copy, `scripts/agents.mjs` renders the
+pages (called by `scripts/pages.mjs`), `src/agents.ts` and `src/agents.css` hold
+the behaviour and styles.
